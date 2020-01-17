@@ -1,0 +1,6 @@
+[
+    {"nom":"cafeine", "type":"anti-fatigue",  "prix":"13", "categorie":"categorie 1" },
+    {"nom":"curcumine", "type":"anti-fatigue",  "prix":"13", "categorie":"categorie 1" },
+    {"nom":"quarcetine", "type":"anti-fatigue",  "prix":"13", "categorie":"categorie 2" },
+    {"nom":"rhodiola", "type":"anti-oxydant",  "prix":"13", "categorie":"categorie 3" }
+]

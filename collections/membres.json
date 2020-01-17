@@ -1,0 +1,11 @@
+[
+    {
+        "nom":"delune", "prenom":"claire", "email":"delune@mail.fr", "password":"123456"
+    },
+    {
+        "nom":"doe", "prenom":"john", "email":"jdoe@mail.fr", "password":"123456"
+    },
+    {
+        "nom":"marco", "prenom":"polo", "email":"mpolo@mail.fr", "password":"123456"
+    }
+]
