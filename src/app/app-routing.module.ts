@@ -4,6 +4,7 @@ import { ConnexionComponent } from './connexion/connexion.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { ProduitsComponent } from './produits/produits.component';
 import { RegisterComponent } from './register/register.component';
+import { PanierComponent } from './panier/panier.component';
 
 const routes: Routes = [
   {
@@ -25,6 +26,11 @@ const routes: Routes = [
   {
     path: 'membres/register',
     component: RegisterComponent
+  },
+
+  {
+    path: 'panier',
+    component: PanierComponent
   }
 ];
 

@@ -26,10 +26,9 @@ export class RegisterComponent {
       if (reponse['resultat']){
         this.authService.connect(this.utilisateur.email);
         this.newUser.connect(this.utilisateur.email);
-
-        this.router.navigate(['/categories']);
+        this.router.navigate(['/produits']);
       }
-      setTimeout( () => { this.router.navigate(['/categories']); }, 1000);
+      setTimeout( () => { this.router.navigate(['/produits']); }, 1000);
     });
   }
 }

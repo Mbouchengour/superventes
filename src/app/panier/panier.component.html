@@ -1,0 +1,26 @@
+<div>
+    <ng-container *ngIf="panier; else noItems">
+      <div class="row justifiy-conten-center">
+        <div class="card-body">
+            <div *ngFor="let produit of panier" class="card">
+                <div class="card-text mx-auto"> {{produit['nom']}} ({{produit['categorie']}})
+                    Prix : {{produit['prix']}} €, quantité : x{{produit['quantite']}} <button (click)="moinsUn(produit['nom'])" class="btn btn-outline-danger"> - </button> <button (click)="plusUn(produit['nom'])" class="btn btn-outline-success"> + </button>
+                    <button (click)="supprimerProduit(produit['nom'])" class="btn btn-danger"> Supprimer </button> 
+            </div>
+        </div>
+        <button (click)="validerCommande()"class="btn btn-success"> Valider la commande</button>
+    </div>
+    </div>
+    </ng-container>
+
+    <ng-template #noItems>
+      <div class="text-center">
+        <div class="card">
+          <div class="card-body">
+            <p class="text-muted"> Aucun article dans le panier !</p>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+    
+  </div>

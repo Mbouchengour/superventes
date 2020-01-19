@@ -4,6 +4,8 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { ProduitsService } from '../services/produits.service';
 import { Router } from "@angular/router";
 import { Observable } from 'rxjs';
+import { PanierService } from '../services/panier.service';
+
 
 
 @Component({
@@ -17,7 +19,7 @@ export class ProduitsComponent implements OnInit {
   private produits: Object[] = new Array();
 
 
-  constructor(private route: ActivatedRoute, private authService: AuthentificationService, private produitsService: ProduitsService) { 
+  constructor(private route: ActivatedRoute, private authService: AuthentificationService, private produitsService: ProduitsService, private PanierService: PanierService, private router: Router) { 
     this.user = this.authService.getUser();
   }
 
@@ -32,6 +34,18 @@ export class ProduitsComponent implements OnInit {
         this.produitsService.getProduits().subscribe(produits => {
           this.produits = produits;
         });
+      }
+    });
+  }
+
+  onAddToCart(produit){
+    var e;
+    this.user.subscribe(email=>{e = email;})
+
+    this.PanierService.panierAjouterProduit({"email":e, "nom":produit}).subscribe(reponse => {
+      if (reponse['resultat']){
+        console.log("Message reçu : "+reponse["message"]);
+        this.router.navigate(['/panier']);
       }
     });
   }

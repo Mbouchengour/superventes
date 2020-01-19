@@ -12,6 +12,7 @@ import { ConnexionComponent } from './connexion/connexion.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { ProduitsComponent } from './produits/produits.component';
 import { RegisterComponent } from './register/register.component';
+import { PanierComponent } from './panier/panier.component';
 
 
 @NgModule({
@@ -21,7 +22,8 @@ import { RegisterComponent } from './register/register.component';
     ConnexionComponent,
     CategoriesComponent,
     ProduitsComponent,
-    RegisterComponent
+    RegisterComponent,
+    PanierComponent
   ],
   imports: [
     BrowserModule,

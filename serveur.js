@@ -19,6 +19,7 @@ app.listen(8888);
 
 
 
+
 MongoClient.connect(url, {useUnifiedTopology: true,useNewUrlParser: true}, (err, client) => {
     let db = client.db("superventes");
 
@@ -144,8 +145,328 @@ MongoClient.connect(url, {useUnifiedTopology: true,useNewUrlParser: true}, (err,
                 }
         	});
         
-    	});
+        });
 
+        app.get("/panier/get/:email", (req, res) => {
+            let email = req.params.email;
+            panierResultat = [];
 
+            var retour = function() {
+                res.end(JSON.stringify(panierResultat));
+            }
 
+            try{
+                db.collection("paniers").find({proprio:email}).toArray((err, paniers) => {
+
+                    for (let panier of paniers) { 
+                        if (panier != undefined){
+                            console.log("contenu :"+JSON.stringify(panier.contenu));
+                            var produits = panier.contenu;
+
+                            var i = 1;
+                            for(let p of produits){
+                                if (p != undefined){
+                                    try{
+                                        console.log("nom :"+ p.nom);
+                                        db.collection("produits").find({"nom":p.nom}).toArray((err, produitsDetailles) => {
+                                            var produit = produitsDetailles[0];
+                                            produit.quantite = p.quantite; 
+                                            panierResultat.push(produit);
+                                            
+                                            if(i == produits.length) 
+                                                retour();
+                                            i++;
+                                        });
+                                    } catch(e) {
+                                        res.end(JSON.stringify([])); 
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                });
+            } catch(e) {
+                console.log("Erreur sur /panier : " + e);
+                res.end(JSON.stringify([]));
+            }
+        });
+
+        app.post("/panier/ajouter", (req, res) => {
+            let email = req.body.email;
+            let nom = req.body.nom;
+
+            try{
+                db.collection("paniers").find({proprio:email}).toArray((err, paniers) => {
+                    for (let panier of paniers) { 
+                        if (panier != undefined){
+                            console.log("contenu :"+JSON.stringify(panier.contenu));
+                            var produits = panier.contenu;
+                            var estDansPanier = false;
+                            
+                            var i = 0;
+                            var indiceProduit = 0;
+                            for(let p of produits){
+                                if (p.nom == nom) {
+                                    estDansPanier = true;
+                                    indiceProduit = i;
+                                }
+                                i++;
+                            }
+                            if(estDansPanier){ 
+                                produits[indiceProduit].quantite++;
+                                try{
+                                    db.collection("paniers").updateOne(
+                                        {"proprio":email},
+                                        {$set:{ "contenu" : produits}}
+                                    );
+
+                                    res.end(JSON.stringify({"resultat": 1, "message": "L'ajout a bien été pris en compte!"}));
+                                } catch(e){
+                                    console.log("Erreur ajout produit existant panier : "+e);
+                                    res.end(JSON.stringify({"resultat": 0, "message": e}));
+                                }
+                            }
+                            else{ 
+                                produits.push({"nom":nom, "quantite" : 1});
+                                try{
+                                    db.collection("paniers").updateOne(
+                                        {"proprio":email},
+                                        {$set:{ "contenu" : produits}}
+                                    );
+                                    res.end(JSON.stringify({"resultat": 1, "message": "L'ajout a bien été pris en compte!"}));
+
+                                } catch(e){
+                                    console.log("Erreur ajout nouveau produit panier : "+e);
+                                    res.end(JSON.stringify({"resultat": 0, "message": e}));
+                                }
+                
+                            }
+                           
+                        }
+                    }
+                });
+
+            } catch(e) {
+                console.log("Erreur get panier : "+e);
+                res.end(JSON.stringify({"resultat": "", "message": e}));
+            }
+        });
+
+        app.post("/panier/ajoutUn", (req, res) => {
+            console.log("/panier/ajoutUn/"+JSON.stringify(req.body));
+            let email = req.body.email;
+            let nom = req.body.nom;
+            panierResultat = [];
+
+            var retour = function() {
+                console.log("Panier retourné:"+JSON.stringify(panierResultat));
+                res.end(JSON.stringify(panierResultat));
+            }
+
+            try{
+                db.collection("paniers").find({proprio:email}).toArray((err, paniers) => {
+
+                    for (let panier of paniers) { 
+                        if (panier != undefined){
+                            console.log("contenu :"+JSON.stringify(panier.contenu));
+                            var produits = panier.contenu;
+
+                            var i = 1;
+                            for(let p of produits){
+                                try{
+                                    db.collection("produits").find({"nom":p.nom}).toArray((err, produitsDetailles) => {
+                                        var produit = produitsDetailles[0];
+                                        if(p.nom == nom){
+                                            var updateQuantite = p.quantite + 1;
+                                            produit.quantite = updateQuantite; 
+                                            p.quantite = updateQuantite;
+
+                                            try{
+                                                db.collection("paniers").updateOne(
+                                                    {"proprio":email},
+                                                    {$set:{ "contenu" : produits}}
+                                                );
+
+                                            } catch(e){
+                                                console.log("erreur modif :"+e);
+                                            }
+                                        }
+
+                                        else
+                                            produit.quantite = p.quantite; 
+
+                                        panierResultat.push(produit);
+                                        
+                                        if(i == produits.length) 
+                                            retour();
+                                        i++;
+                                    });
+                                } catch(e) {
+                                    console.log("/produits/"+ nom + " : " + e);
+                                    res.end(JSON.stringify([])); 
+                                }
+                            }
+                        }
+                    }
+
+                });
+            } catch(e) {
+                console.log("Erreur sur /panier : " + e);
+                res.end(JSON.stringify([]));
+            }
+        });
+
+            app.post("/panier/retraitUn", (req, res) => {
+                let email = req.body.email;
+                let nom = req.body.nom;
+                panierResultat = [];
+    
+                var retour = function() {
+                    console.log("Panier retourné:"+JSON.stringify(panierResultat));
+                    res.end(JSON.stringify(panierResultat));
+                }
+    
+                try{
+                    db.collection("paniers").find({proprio:email}).toArray((err, paniers) => {
+    
+                        for (let panier of paniers) { 
+                            if (panier != undefined){
+                                var produits = panier.contenu;
+    
+                                var i = 1;
+                                var nbProduitsAvant = produits.length;
+                                for(let p of produits){
+
+                                    try{
+                                        db.collection("produits").find({"nom":p.nom}).toArray((err, produitsDetailles) => {
+                                            var produit = produitsDetailles[0];
+                                            if(p.nom == nom){
+                                                var updateQuantite = p.quantite - 1;
+                                                produit.quantite = updateQuantite; 
+                                                p.quantite = updateQuantite;
+                                                if (updateQuantite < 1){
+                                                    produits.pop(p);
+                                                }
+                                                else
+                                                    panierResultat.push(produit);
+                                                try{
+                                                    db.collection("paniers").updateOne(
+                                                    {"proprio":email},
+                                                    {$set:{ "contenu" : produits}}
+                                                    );
+                                                } catch(e){
+                                                    console.log("erreur modif :"+e);
+                                                }
+            
+                                            }
+    
+                                            else{
+                                                produit.quantite = p.quantite; 
+                                                panierResultat.push(produit);
+                                            }
+                                            
+                                            if(i == nbProduitsAvant) 
+                                                retour();
+                                            i++;
+                                        });
+                                    } catch(e) {
+                                        console.log("/produits/"+ nom + " : " + e);
+                                        res.end(JSON.stringify([])); 
+                                    }
+                                }
+                            }
+                        }
+    
+                    });
+                } catch(e) {
+                    console.log("Erreur sur /panier : " + e);
+                    res.end(JSON.stringify([]));
+                }
+            });
+
+        app.post("/panier/supprimer", (req, res) => {
+            let email = req.body.email;
+            let nom = req.body.nom;
+            var panierResultat = [];
+
+            try{
+                db.collection("paniers").find({proprio:email}).toArray((err, paniers) => {
+
+                    for (let panier of paniers) { 
+                        if (panier != undefined){
+                            console.log("contenu :"+JSON.stringify(panier.contenu));
+                            var produits = panier.contenu;
+
+                            var i = 1;
+                            var nbProduitsAvant = produits.length;
+                            for(let p of produits){
+
+                                try{
+                                    db.collection("produits").find({"nom":p.nom}).toArray((err, produitsDetailles) => {
+                                       
+                                        var produit = produitsDetailles[0];
+                                        if(p.nom == nom){
+                                            produits.pop(p); 
+
+                                            try{
+                                                db.collection("paniers").updateOne(
+                                                    {"proprio":email},
+                                                    {$set:{ "contenu" : produits}}
+                                                );
+
+                                            } catch(e){
+                                                console.log("erreur modif :"+e);
+                                            }
+                                        }
+
+                                        else{
+                                            produit.quantite = p.quantite; 
+                                            panierResultat.push(produit); 
+                                        }
+                                        
+                                        if(i == nbProduitsAvant){
+                                            console.log("Panier retourné:"+JSON.stringify(panierResultat));
+                                            res.end(JSON.stringify(panierResultat));
+                                        }
+                                        i++; 
+
+                                    });
+                                } catch(e) {
+                                    console.log("/produits/"+ nom + " : " + e);
+                                    res.end(JSON.stringify([])); 
+                                }
+                            }
+                        }
+                    }
+
+                });
+            } catch(e) {
+                console.log("Erreur sur /panier : " + e);
+                res.end(JSON.stringify([]));
+            }
+        });
+
+        app.get("/panier/validerPanier/:email", (req, res) => {
+            let email = req.params.email;
+            panierResultat = [];
+
+            var retour = function() {
+                console.log("Panier retourné:"+JSON.stringify(panierResultat));
+                res.end(JSON.stringify(panierResultat));
+            }
+            
+            try{
+                db.collection("paniers").updateOne(
+                {"proprio":email},
+                {$set:{ "contenu" : [] }}
+                );
+                retour();
+            } catch(e){
+                console.log("erreur vidage panier :"+e);
+                retour();
+            }
+        });
+
+        
 });

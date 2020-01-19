@@ -1,0 +1,6 @@
+[
+    {
+        "proprio":"user@mail.com",
+        "contenu":[{"nom":"cafeine", "quantite":1}, {"nom":"curcumine", "quantite":2}]  
+    }
+]

@@ -4,7 +4,7 @@
             <div class="card-text mx-auto">
                 {{produit['nom']}} ({{produit['type']}})
                 <div *ngIf="(user|async)"> 
-                    <button>Achetez</button>
+                    <button (click)="onAddToCart(produit['nom'])">Ajouter au panier</button>
                 </div>
             </div>
         </div>
